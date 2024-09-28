@@ -1,0 +1,182 @@
+#NMDS 1
+library(vegan)
+colonnes_especes <- colnames(base)[2:21]
+matrice_especes <- base[, colonnes_especes]
+nmds <- metaMDS(matrice_especes)
+print(nmds)
+str(nmds)
+nmds$points
+scores(nmds)
+plot(nmds)
+stressplot(nmds)
+ordiplot(nmds, display = "species", type = "text")
+ordiplot(nmds, type = "text")
+base_especes <- matrice_especes
+parametres_supplementaires <- data.frame(
+  land_use = c("agriculture", "agriculture", "agriculture", "rurale", "rurale", "pastorale", "agriculture", "agriculture", "pastorale"),
+  niveau_eau = c(4.52, 2.23, 1.91, 1.25, 0.52, 0.45, 1.47, 1.31, 0.42),
+  profondeur = c(16.91, 13.41, 10.3, 7.36, 9.88, 11, 20.33, 28, 4.76)
+)
+base_combinees <- cbind(base_especes, parametres_supplementaires)
+base_especes <- data.frame(
+  x = nmds$points[, 1],
+  y = nmds$points[, 2],
+  land_use = parametres_supplementaires$land_use,
+  niveau_eau = parametres_supplementaires$niveau_eau,
+  profondeur = parametres_supplementaires$profondeur
+)
+ggplot() +
+  geom_point(data = base_especes, aes(x = x, y = y, shape = land_use, size = niveau_eau, color = profondeur)) +
+  scale_shape_manual(values = c(16, 17, 18, 19)) +
+  scale_size_continuous(range = c(3, 10)) +
+  geom_point(data = especes, aes(x = x, y = y), shape = 16, size = 3, color = "black") +
+  annotate("text", x = -0.8, y = 0.8, label = paste0("Stress: ", round(nmds$stress, 4)), size = 4, color = "black") +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(x = "NMDS1", y = "NMDS2") +
+  theme_bw()
+especes <- data.frame(
+  x = nmds$species[, 1],  # Coordonnées NMDS1 des espèces
+  y = nmds$species[, 2],  # Coordonnées NMDS2 des espèces
+  nom_espece = rownames(nmds$species)  # Noms des espèces
+)
+ggplot() +
+  geom_point(data = base_especes, aes(x = x, y = y, shape = land_use, size = niveau_eau, color = profondeur)) +
+  scale_shape_manual(values = c(16, 17, 18, 19)) +
+  scale_size_continuous(range = c(3, 10)) +
+  geom_point(data = especes, aes(x = x, y = y), shape = 16, size = 3, color = "black") +
+  geom_text(data = especes, aes(x = x, y = y, label = nom_espece), hjust = 0.5, vjust = -0.5, size = 3, color = "black") +
+  annotate("text", x = -0.8, y = 0.8, label = paste0("Stress: ", round(nmds$stress, 4)), size = 4, color = "black") +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(x = "NMDS1", y = "NMDS2") +
+  theme_bw()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#NMDS 2
+library(vegan)
+colonnes_especes <- colnames(base)[2:22]
+matrice_especes <- base[, colonnes_especes]
+nmds <- metaMDS(matrice_especes)
+print(nmds)
+str(nmds)
+nmds$points
+scores(nmds)
+plot(nmds)
+stressplot(nmds)
+ordiplot(nmds, display = "species", type = "text")
+ordiplot(nmds, type = "text")
+base_especes <- matrice_especes
+etat <- data.frame(
+  protection = c("Non-protégé", "Semi-protégé", "Semi-protégé", "Non-protégé", "Semi-protégé", "Non-protégé", "Non-protégé", "Non-protégé", "Non-protégé", "Semi-protégé"))
+base_combinees <- cbind(base_especes, etat)
+base_especes <- data.frame(
+  x = nmds$points[, 1],
+  y = nmds$points[, 2],
+  protection = etat$protection
+)
+plot_especes <- ggplot(base_especes, aes(x = x, y = y, color = protection)) +
+  geom_point(size = 3) +
+  labs(x = "NMDS1", y = "NMDS2") +
+  theme_minimal()
+
+print(plot_especes)
+plot_especes <- ggplot(base_especes, aes(x = x, y = y, color = protection)) +
+  geom_point(size = 3) +
+   annotate("text", x = -0.8, y = 0.8, label = paste0("Stress: ", round(nmds$stress, 4)), size = 4, color = "black") +
+  labs(x = "NMDS1", y = "NMDS2") +
+  theme_minimal()
+
+print(plot_especes)
+
+Using chatgpt for calculate a centroid 
+# Calculer les coordonnées du centroïde pour chaque région
+centroid_non_protege <- colMeans(base_especes[base_especes$protection == "Non-protégé", c("x", "y")])
+centroid_semi_protege <- colMeans(base_especes[base_especes$protection == "Semi-protégé", c("x", "y")])
+
+# Ajouter les centroïdes comme des points distincts sur le graphique
+plot_especes <- ggplot(base_especes, aes(x = x, y = y, color = protection)) +
+  geom_point(size = 3) +
+  geom_point(data = data.frame(x = centroid_non_protege[1], y = centroid_non_protege[2], region = "Non-protégé"),
+             aes(x = x, y = y, color = region), shape = 16, size = 5) +
+  geom_point(data = data.frame(x = centroid_semi_protege[1], y = centroid_semi_protege[2], region = "Semi-protégé"),
+             aes(x = x, y = y, color = region), shape = 16, size = 5) +
+  annotate("text", x = -0.8, y = 0.8, label = paste0("Stress: ", round(nmds$stress, 4)), size = 4, color = "black") +
+  labs(x = "NMDS1", y = "NMDS2") +
+  stat_ellipse()+
+  theme_minimal()
+
+# Afficher le graphique
+print(plot_especes)
+
+# Create the NMDS plot with colored ellipse contents for each region
+plot_especes <- ggplot(base_especes, aes(x = x, y = y, color = region)) +
+  geom_point(size = 3) +
+  stat_ellipse(aes(fill = region), geom = "polygon", level = 0.95, alpha = 0.5) +
+  annotate("text", x = -0.8, y = 0.8, label = paste0("Stress: ", round(nmds$stress, 4)), size = 4, color = "black") +
+  labs(x = "NMDS1", y = "NMDS2") +
+  theme_minimal()
+print(plot_especes)
+
+#montrer les noms des régions comme la figure du SAMRAOUI : 
+base<-read.csv2("C:/Users/moste/OneDrive/Bureau/Classeur3.csv")
+print(base)
+colonnes_especes <- colnames(base)[2:9]
+matrice_especes <- base[, colonnes_especes]
+base1<-read.csv2("C:/Users/moste/OneDrive/Bureau/AYMEN.csv")
+print(base1)
+print(matrice_especes)
+ord <- metaMDS(matrice_especes)
+stress_value <- ord$stress
+fit <- envfit(ord ~ REGION, base1, perm = 999)
+fit
+plot(ord, type = "n")
+with(base1, ordispider(ord, REGION, col="skyblue"))
+with(base1, points(ord ,  col= "black",pch=16))
+with(base1, points(ord , display = "species", col= "red",pch=16))
+plot(fit, cex=1.2, axis=TRUE, bg = rgb(1, 1, 1, 0.5))
+plot(fit, cex=1.2, axis=TRUE, bg = rgb(1, 1, 1, 0.5))
+plot(fit, cex=1.4, axis=TRUE, bg = rgb(1, 1, 1, 1))
+with(base1, text(ord, display = "species", labels = colnames(matrice_especes), col = "black", cex = 0.8, pos = 3))
+# Annotate the plot with the stress value
+text(x = max(ord$points[, 1]), y = max(ord$points[, 2]), 
+     labels = paste("Stress =", round(stress_value, 3)), 
+     pos = 4,  cex = 1.2)
+ANALYSE D’ADONIS :
+adonis_result <- adonis2(matrice_especes ~  protection, data = base1)
+adonis_result <- adonis2(matrice_especes ~  Niveau_d.eau * Latitude, data = base1)
+adonis_result <- adonis2(matrice_especes ~  Niveau_d.eau , data = base1)
+adonis_result <- adonis2(matrice_especes ~ Latitude , data = base1)
+adonis_result <- adonis2(matrice_especes ~   , data = base1)
+# Afficher les résultats
+print(adonis_result)
+function  ordisurf:§§
+ longitude <- c(7.12076944, 7.11910833, 7.11826389, 7.12460278, 7.131, 7.11289722, 7.11733056, 7.11853611, 7.04841667, 7.13352222)
+latitude <- c(35.84552222, 35.80698332, 35.805775, 35.79645, 35.79603056, 35.76509722, 35.74034444, 35.74185, 35.72986667, 35.79921667)
+surf_latitude <- ordisurf(nmds, latitude, display = "sites", col = "green")
+surf_longitude <- ordisurf(nmds, longitude, display = "sites", col = "green")
+# Define color palette based on protection levels
+protection_colors <- c("Non-protégé" = "red", "Semi-protégé" = "blue")
+
+# Plot the sites with different colors using ordisurf
+plot(nmds$points, type = "n")  # Create an empty plot
+ordisurf(nmds, latitude, display = "sites", col = protection_colors[protection])  # Add surface plot with different colors
+points(nmds$points, pch = 19, col = protection_colors[protection])  # Add points with different colors
+
+# Add text and other elements to the plot
+text(-0.8, 0.8, paste0("Stress: ", round(nmds$stress, 4)), pos = 4, cex = 0.8)
